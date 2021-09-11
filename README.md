@@ -1,15 +1,45 @@
-# Basic Sample Hardhat Project
+# Aave deposit / withdraw project
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, a sample script that deploys that contract, and an example of a task implementation, which simply lists the available accounts.
+This project allows:
+1. to deposit funds to Aave, and then 
+2. to withdraw deposits from Aave and provide liquidity of the same token in a Uniswap pool
 
-Try running some of the following tasks:
+## Installation
 
-```shell
-npx hardhat accounts
-npx hardhat compile
-npx hardhat clean
-npx hardhat test
-npx hardhat node
-node scripts/sample-script.js
-npx hardhat help
+Download the project and run 
+
+```bash
+npm i
 ```
+
+## Compile
+
+```bash
+npx hardhat compile
+```
+
+## Run a project
+
+Run a local node:
+```bash
+npx hardhat node
+```
+
+Deploy the contract on the local node:
+```bash
+npx hardhat run scripts/deploy.js --network localhost
+```
+
+Run frontend:
+```bash
+npm start
+```
+
+## Contributing
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+
+Please make sure to update tests as appropriate.
+
+## License
+[MIT](https://choosealicense.com/licenses/mit/)
+
