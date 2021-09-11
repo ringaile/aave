@@ -23,6 +23,8 @@ import { WaitingForTransactionMessage } from "./WaitingForTransactionMessage";
 // to use when deploying to other networks.
 const HARDHAT_NETWORK_ID = '31337';
 
+const KOVAN_NETWORK_ID = '42';
+
 // This is an error code that indicates that the user canceled a transaction
 const ERROR_CODE_TX_REJECTED_BY_USER = 4001;
 
@@ -273,7 +275,7 @@ export class Dapp extends React.Component {
       }
 
       console.error(error);
-      this.setState({ transactionError: error });
+      this.setState({ transactionError: error.message });
     } finally {
       this.setState({ txBeingSent: undefined });
     }
@@ -333,7 +335,7 @@ export class Dapp extends React.Component {
 
   // This method checks if Metamask selected network is Localhost:8545 
   _checkNetwork() {
-    if (window.ethereum.networkVersion === HARDHAT_NETWORK_ID) {
+    if (window.ethereum.networkVersion === KOVAN_NETWORK_ID) {
       return true;
     }
 
