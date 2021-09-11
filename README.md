@@ -32,6 +32,7 @@ npx hardhat run scripts/deploy.js --network localhost
 
 Run frontend:
 ```bash
+cd fronted/
 npm start
 ```
 
