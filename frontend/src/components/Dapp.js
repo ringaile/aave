@@ -5,11 +5,6 @@ import { ethers } from "ethers";
 
 // We import the contract's artifacts and address here, as we are going to be
 // using them with ethers
-import TokenArtifact from "../contracts/Token.json";
-import contractAddress from "../contracts/contract-address.json";
-
-// We import the contract's artifacts and address here, as we are going to be
-// using them with ethers
 import AaveArtifact from "../contracts/Aave.json";
 import contractAaveAddress from "../contracts/contract-address-aave.json";
 
@@ -18,13 +13,10 @@ import contractAaveAddress from "../contracts/contract-address-aave.json";
 // logic. They just render HTML.
 import { NoWalletDetected } from "./NoWalletDetected";
 import { ConnectWallet } from "./ConnectWallet";
-import { Loading } from "./Loading";
-import { Transfer } from "./Transfer";
 import { Deposit } from "./Deposit";
 import { Withdraw } from "./Withdraw";
 import { TransactionErrorMessage } from "./TransactionErrorMessage";
 import { WaitingForTransactionMessage } from "./WaitingForTransactionMessage";
-import { NoTokensMessage } from "./NoTokensMessage";
 
 // This is the Hardhat Network id, you might change it in the hardhat.config.js
 // Here's a list of network ids https://docs.metamask.io/guide/ethereum-provider.html#properties
@@ -89,26 +81,13 @@ export class Dapp extends React.Component {
       );
     }
 
-    // If the token data or the user's balance hasn't loaded yet, we show
-    // a loading component.
-    if (!this.state.tokenData || !this.state.balance) {
-      return <Loading />;
-    }
-
     // If everything is loaded, we render the application.
     return (
       <div className="container p-4">
         <div className="row">
           <div className="col-12">
-            <h1>
-              {this.state.tokenData.name} ({this.state.tokenData.symbol})
-            </h1>
             <p>
-              Welcome <b>{this.state.selectedAddress}</b>, you have{" "}
-              <b>
-                {this.state.balance.toString()} {this.state.tokenData.symbol}
-              </b>
-              .
+              Welcome
             </p>
           </div>
         </div>
@@ -141,46 +120,11 @@ export class Dapp extends React.Component {
 
         <div className="row">
           <div className="col-12">
-            {/*
-              If the user has no tokens, we don't show the Tranfer form
-            */}
-            {this.state.balance.eq(0) && (
-              <NoTokensMessage selectedAddress={this.state.selectedAddress} />
-            )}
-
-            {/*
-              This component displays a form that the user can use to send a 
-              transaction and transfer some tokens.
-              The component doesn't have logic, it just calls the transferTokens
-              callback.
-            */}
-            {this.state.balance.gt(0) && (
-              <Transfer
-                transferTokens={(to, amount) =>
-                  this._transferTokens(to, amount)
-                }
-              />
-            )}
-          </div>
-        </div>
-
-        <div className="row">
-          <div className="col-12">
-
-            {/*
-              This component displays a form that the user can use to send a 
-              transaction and transfer some tokens.
-              The component doesn't have logic, it just calls the transferTokens
-              callback.
-            */}
-            {this.state.balance.gt(0) && (
               <Deposit
                 depositTokens={(tokenAddress, tokenAmount) =>
-                  this._transferTokens(tokenAddress, tokenAmount)
+                  this._depositTokens(tokenAddress, tokenAmount)
                 }
-                tokenSymbol={this.state.tokenData.symbol}
               />
-            )}
           </div>
         </div>
 
@@ -193,12 +137,11 @@ export class Dapp extends React.Component {
               The component doesn't have logic, it just calls the transferTokens
               callback.
             */}
-            {this.state.balance.gt(0) && (
+            {this.state && (
               <Withdraw
                 withdrawTokens={(tokenAddress, tokenAmount) =>
-                  this._transferTokens(tokenAddress, tokenAmount)
+                  this._withdrawTokens(tokenAddress, tokenAmount)
                 }
-                tokenSymbol={this.state.tokenData.symbol}
               />
             )}
           </div>
@@ -276,12 +219,6 @@ export class Dapp extends React.Component {
 
     // When, we initialize the contract using that provider and the token's
     // artifact. You can do this same thing with your contracts.
-    this._token = new ethers.Contract(
-      contractAddress.Token,
-      TokenArtifact.abi,
-      this._provider.getSigner(0)
-    );
-
     this._aave = new ethers.Contract(
       contractAaveAddress.Aave,
       AaveArtifact.abi,
@@ -311,79 +248,12 @@ export class Dapp extends React.Component {
   // The next two methods just read from the contract and store the results
   // in the component state.
   async _getTokenData() {
-    const name = await this._token.name();
-    const symbol = await this._token.symbol();
-
-    this.setState({ tokenData: { name, symbol } });
   }
 
   async _updateBalance() {
-    const balance = await this._token.balanceOf(this.state.selectedAddress);
-    this.setState({ balance });
-  }
-
-  // This method sends an ethereum transaction to transfer tokens.
-  // While this action is specific to this application, it illustrates how to
-  // send a transaction.
-  async _transferTokens(to, amount) {
-    // Sending a transaction is a complex operation:
-    //   - The user can reject it
-    //   - It can fail before reaching the ethereum network (i.e. if the user
-    //     doesn't have ETH for paying for the tx's gas)
-    //   - It has to be mined, so it isn't immediately confirmed.
-    //     Note that some testing networks, like Hardhat Network, do mine
-    //     transactions immediately, but your dapp should be prepared for
-    //     other networks.
-    //   - It can fail once mined.
-    //
-    // This method handles all of those things, so keep reading to learn how to
-    // do it.
-
-    try {
-      // If a transaction fails, we save that error in the component's state.
-      // We only save one such error, so before sending a second transaction, we
-      // clear it.
-      this._dismissTransactionError();
-
-      // We send the transaction, and save its hash in the Dapp's state. This
-      // way we can indicate that we are waiting for it to be mined.
-      const tx = await this._token.transfer(to, amount);
-      this.setState({ txBeingSent: tx.hash });
-
-      // We use .wait() to wait for the transaction to be mined. This method
-      // returns the transaction's receipt.
-      const receipt = await tx.wait();
-
-      // The receipt, contains a status flag, which is 0 to indicate an error.
-      if (receipt.status === 0) {
-        // We can't know the exact error that made the transaction fail when it
-        // was mined, so we throw this generic one.
-        throw new Error("Transaction failed");
-      }
-
-      // If we got here, the transaction was successful, so you may want to
-      // update your state. Here, we update the user's balance.
-      await this._updateBalance();
-    } catch (error) {
-      // We check the error code to see if this error was produced because the
-      // user rejected a tx. If that's the case, we do nothing.
-      if (error.code === ERROR_CODE_TX_REJECTED_BY_USER) {
-        return;
-      }
-
-      // Other errors are logged and stored in the Dapp's state. This is used to
-      // show them to the user, and for debugging.
-      console.error(error);
-      this.setState({ transactionError: error });
-    } finally {
-      // If we leave the try/catch, we aren't sending a tx anymore, so we clear
-      // this part of the state.
-      this.setState({ txBeingSent: undefined });
-    }
   }
 
   async _depositTokens(tokenAddress, tokenAmount) {
-
     try {
       this._dismissTransactionError();
       const tx = await this._aave.deposit(tokenAddress, tokenAmount);

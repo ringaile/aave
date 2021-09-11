@@ -24,13 +24,13 @@ export function Deposit({ depositTokens}) {
           <input
             className="form-control"
             type="text"
-            name="address"
+            name="tokenAddress"
             required
           />
         </div>
         <div className="form-group">
           <label>Amount</label>
-          <input className="form-control" type="text" name="to" required />
+          <input className="form-control" type="text" name="tokenAmount" required />
         </div>
         <div className="form-group">
           <input className="btn btn-primary" type="submit" value="Deposit" />
