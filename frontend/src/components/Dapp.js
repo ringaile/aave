@@ -436,8 +436,6 @@ export class Dapp extends React.Component {
     }
   }
 
-
-
   // This method just clears part of the state.
   _dismissTransactionError() {
     this.setState({ transactionError: undefined });

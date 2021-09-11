@@ -5,20 +5,24 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@aave/protocol-v2/contracts/interfaces/ILendingPoolAddressesProvider.sol";
 import "@aave/protocol-v2/contracts/interfaces/ILendingPool.sol";
 import './interfaces/IUniswapV2Router02.sol';
+import "hardhat/console.sol";
 
 contract Aave{
+
+    address public owner;
 
     ILendingPoolAddressesProvider lendingPoolAddressesProvider;
     ILendingPool lendingPool;
     IUniswapV2Router02 uniswapV2Router02;
 
     constructor() public{
+        owner = msg.sender;
         // check the latest address from here: https://docs.aave.com/developers/deployed-contracts/deployed-contracts                                                         
         lendingPoolAddressesProvider = ILendingPoolAddressesProvider(0x88757f2f99175387aB4C6a4b3067c77A695b0349);
-        lendingPool = ILendingPool(lendingPoolAddressesProvider.getLendingPool());
+        lendingPool = ILendingPool(0xE0fBa4Fc209b4948668006B2bE61711b7f465bAe);
 
         // the address found here: https://docs.uniswap.org/protocol/V2/reference/smart-contracts/router-02
-        uniswapV2Router02 = IUniswapV2Router02(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D);
+        //uniswapV2Router02 = IUniswapV2Router02(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D);
     }
 
     function deposit(address _token, uint _amount) external {
